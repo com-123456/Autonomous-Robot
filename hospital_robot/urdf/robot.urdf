@@ -1,30 +1,108 @@
 <?xml version="1.0"?>
-<robot name="hospital_robot">
-    <link name="base_link">
-        <visual>
-            <geometry>
-                <box size="0.5 0.5 0.2"/>
-            </geometry>
-            <material name="blue">
-                <color rgba="0 0 1 1"/>
-            </material>
-        </visual>
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Define constants -->
+  <xacro:property name="length" value="0.315"/> <!-- 31.5 cm in meters -->
+  <xacro:property name="breadth" value="0.30"/> <!-- 30 cm in meters -->
+  <xacro:property name="height" value="0.50"/> <!-- 50 cm in meters -->
+  <xacro:property name="wheel_diameter" value="0.065"/> <!-- 6.5 cm in meters -->
+  <xacro:property name="wheel_width" value="0.03"/> <!-- 3 cm in meters -->
+  <xacro:property name="wheel_y_offset" value="0.15"/> <!-- Half of breadth -->
+  <xacro:property name="wheel_x_offset" value="0.1575"/> <!-- Half of length -->
+
+  <!-- Base Link -->
+  <link name="base_link">
+    <inertial>
+      <mass value="5.0"/> <!-- Approximate mass in kg -->
+      <origin xyz="0 0 ${height/2}" rpy="0 0 0"/>
+      <inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 ${height/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${length} ${breadth} ${height}"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0 0 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${height/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${length} ${breadth} ${height}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- LiDAR Link -->
+  <link name="lidar_link">
+    <inertial>
+      <mass value="0.1"/> <!-- Approximate mass in kg -->
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="0.05" radius="0.05"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="0.05" radius="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- LiDAR Joint -->
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0 0 ${height}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Wheel Links and Joints -->
+  <xacro:macro name="wheel" params="prefix x y">
+    <link name="${prefix}_wheel">
+      <inertial>
+        <mass value="0.5"/> <!-- Approximate mass in kg -->
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_diameter/2}" length="${wheel_width}"/>
+        </geometry>
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_diameter/2}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
     </link>
 
-    <link name="lidar_link">
-        <visual>
-            <geometry>
-                <cylinder length="0.1" radius="0.05"/>
-            </geometry>
-            <material name="red">
-                <color rgba="1 0 0 1"/>
-            </material>
-        </visual>
-    </link>
-
-    <joint name="lidar_joint" type="fixed">
-        <parent link="base_link"/>
-        <child link="lidar_link"/>
-        <origin xyz="0 0 0.15" rpy="0 0 0"/>
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${prefix}_wheel"/>
+      <origin xyz="${x} ${y} ${wheel_diameter/2}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="10.0" velocity="10.0"/>
     </joint>
+  </xacro:macro>
+
+  <!-- Define four wheels -->
+  <xacro:wheel prefix="front_left" x="${wheel_x_offset}" y="${wheel_y_offset}"/>
+  <xacro:wheel prefix="front_right" x="${wheel_x_offset}" y="-${wheel_y_offset}"/>
+  <xacro:wheel prefix="rear_left" x="-${wheel_x_offset}" y="${wheel_y_offset}"/>
+  <xacro:wheel prefix="rear_right" x="-${wheel_x_offset}" y="-${wheel_y_offset}"/>
+
 </robot>
