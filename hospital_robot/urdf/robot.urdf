@@ -334,4 +334,8 @@
     </sensor>
   </gazebo>
 
+<<<<<<< HEAD
 </robot>
+=======
+</robot>
+>>>>>>> 5ccfe56a86e07033e3c50af6287f3af34bb1d058
